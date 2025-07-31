@@ -4,7 +4,7 @@
     clippy::enum_variant_names,
     clippy::inline_always,
 )]
-use std::{io::Write as _, os::unix::fs::PermissionsExt, path::{Path, PathBuf}, sync::LazyLock};
+use std::{io::Write as _, path::{Path, PathBuf}, sync::LazyLock};
 
 mod features;
 mod os;
@@ -55,7 +55,9 @@ fn unzip_archive(build_dir: &Path, archive_filename: &str) {
     std::fs::remove_file(archive_path).unwrap();
 }
 
+#[cfg(any(target_os = "linux", target_os = "macos"))]
 fn set_permissions_on_bin(llvm_dir: &Path) {
+    use std::os::unix::fs::PermissionsExt;
     let bin_dir = llvm_dir.join("bin");
     let mode = std::fs::Permissions::from_mode(0o755);
     let mut bin_files = Vec::new();
@@ -75,6 +77,11 @@ fn set_permissions_on_bin(llvm_dir: &Path) {
     for path in &bin_files {
         std::fs::set_permissions(path, mode.clone()).unwrap();
     }
+}
+
+#[cfg(target_os = "windows")]
+fn set_permissions_on_bin(_llvm_dir: &Path) {
+    // Windows doesn't need to set permissions on the binaries
 }
 
 
