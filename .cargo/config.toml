@@ -1,0 +1,2 @@
+[env]
+ARCHIVE_URL_TEMPLATE = "https://github.com/RafalSzefler/llvm-builds/raw/refs/heads/main/archives/{llvmVersion}-{os}-{arch}.zip"
