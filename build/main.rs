@@ -1,19 +1,18 @@
 #![deny(warnings)]
 #![warn(clippy::all, clippy::pedantic)]
-#![allow(
-    clippy::enum_variant_names,
-    clippy::inline_always,
-)]
-use std::{io::Write as _, path::{Path, PathBuf}, sync::LazyLock};
+#![allow(clippy::enum_variant_names, clippy::inline_always)]
+use std::{
+    io::Write as _,
+    path::{Path, PathBuf},
+    sync::LazyLock,
+};
 
-mod features;
-mod os;
 mod arch;
+mod features;
 mod linking;
+mod os;
 
-static ROOT_DIR: LazyLock<PathBuf> = LazyLock::new(|| {
-    PathBuf::from(std::env::var("CARGO_MANIFEST_DIR").unwrap())
-});
+static ROOT_DIR: LazyLock<PathBuf> = LazyLock::new(|| PathBuf::from(std::env::var("CARGO_MANIFEST_DIR").unwrap()));
 
 fn get_root_dir() -> &'static PathBuf {
     &ROOT_DIR
@@ -32,7 +31,6 @@ fn download_archive(url: &str, build_dir: &PathBuf, filename: &str) {
     file.flush().unwrap();
 }
 
-
 fn unzip_archive(build_dir: &Path, archive_filename: &str) {
     let archive_path = build_dir.join(archive_filename);
     let mut zip = zip::ZipArchive::new(std::fs::File::open(&archive_path).unwrap()).unwrap();
@@ -42,10 +40,10 @@ fn unzip_archive(build_dir: &Path, archive_filename: &str) {
         if file.name().ends_with('/') {
             std::fs::create_dir_all(&outpath).unwrap();
         } else {
-            if let Some(p) = outpath.parent() {
-                if !p.exists() {
-                    std::fs::create_dir_all(p).unwrap();
-                }
+            if let Some(p) = outpath.parent()
+                && !p.exists()
+            {
+                std::fs::create_dir_all(p).unwrap();
             }
             let mut outfile = std::fs::File::create(&outpath).unwrap();
             std::io::copy(&mut file, &mut outfile).unwrap();
@@ -84,14 +82,14 @@ fn set_permissions_on_bin(_llvm_dir: &Path) {
     // Windows doesn't need to set permissions on the binaries
 }
 
-
 fn main() {
     let version = features::get_current_llvm_feature();
     let os = os::get_current_os();
     let arch = arch::get_current_arch();
     let archive_url_template = std::env::var("ARCHIVE_URL_TEMPLATE").unwrap();
     println!("cargo:rerun-if-env-changed=ARCHIVE_URL_TEMPLATE");
-    let archive_url = archive_url_template.replace("{llvmVersion}", version.as_str())
+    let archive_url = archive_url_template
+        .replace("{llvmVersion}", version.as_str())
         .replace("{os}", os.as_str())
         .replace("{arch}", arch.as_str());
     let build_dir_name = format!(".build-{}-{}-{}", version.as_str(), os.as_str(), arch.as_str());

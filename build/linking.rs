@@ -4,15 +4,16 @@ use std::path::{Path, PathBuf};
 
 pub fn link_llvm(llvm_dir: &Path) {
     let llvm_bin_dir = llvm_dir.join("bin");
-    assert!(llvm_bin_dir.exists(), "bin directory not found: {}", llvm_bin_dir.display());
+    assert!(
+        llvm_bin_dir.exists(),
+        "bin directory not found: {}",
+        llvm_bin_dir.display()
+    );
 
     let llvm_config = locate_llvm_config(&llvm_bin_dir);
     println!("cargo:config_path={}", llvm_config.display());
 
-
-    let call_llvm_config = |args: &[&str]| {
-        call_llvm_config(&llvm_config, args)
-    };
+    let call_llvm_config = |args: &[&str]| call_llvm_config(&llvm_config, args);
 
     let libdir = call_llvm_config(&["--libdir"]);
     println!("cargo:libdir={libdir}"); // DEP_LLVM_LIBDIR
@@ -64,11 +65,7 @@ fn get_system_library_dirs() -> Vec<String> {
     } else if target_os_is("linux") && cfg!(target_feature = "crt-static") {
         // When linking statically on Linux, we need to provide the directory
         // with system-wide static libraries explicitly.
-        #[cfg(any(
-            target_arch = "x86_64",
-            target_arch = "powerpc64",
-            target_arch = "aarch64"
-        ))]
+        #[cfg(any(target_arch = "x86_64", target_arch = "powerpc64", target_arch = "aarch64"))]
         {
             system_library_dirs.push("/lib64".to_string());
             system_library_dirs.push("/usr/lib64".to_string());
@@ -84,7 +81,8 @@ fn get_system_library_dirs() -> Vec<String> {
 
 fn get_system_libraries(llvm_config: &Path) -> Vec<String> {
     let libs = call_llvm_config(llvm_config, &["--system-libs"]);
-    let mut system_libs: Vec<String> = libs.split_whitespace()
+    let mut system_libs: Vec<String> = libs
+        .split_whitespace()
         .map(|flag| {
             if target_env_is("msvc") {
                 return extract_lib_name(flag);
@@ -97,10 +95,7 @@ fn get_system_libraries(llvm_config: &Path) -> Vec<String> {
                     // which refer to libraries shipped with a given system and aren't shipped
                     // as part of the corresponding SDK. They're named like the underlying
                     // library object, including the 'lib' prefix that we need to strip.
-                    if let Some(flag) = flag
-                        .strip_prefix("lib")
-                        .and_then(|flag| flag.strip_suffix(".tbd"))
-                    {
+                    if let Some(flag) = flag.strip_prefix("lib").and_then(|flag| flag.strip_suffix(".tbd")) {
                         return flag.to_string();
                     }
                 }
@@ -118,10 +113,7 @@ fn get_system_libraries(llvm_config: &Path) -> Vec<String> {
             if maybe_lib.is_file() {
                 // Library on disk, likely an absolute path to a .so. We'll add its location to
                 // the library search path and specify the file as a link target.
-                println!(
-                    "cargo:rustc-link-search={}",
-                    maybe_lib.parent().unwrap().display()
-                );
+                println!("cargo:rustc-link-search={}", maybe_lib.parent().unwrap().display());
 
                 // Expect a file named something like libfoo.so, or with a version libfoo.so.1.
                 // Trim everything after and including the last .so and remove the leading 'lib'
@@ -134,16 +126,13 @@ fn get_system_libraries(llvm_config: &Path) -> Vec<String> {
                 // Check for any valid library filename, even if it's a different kind from the
                 // one we asked for. Some configurations give us a path to a static archive,
                 // even when we're asking for shared libraries.
-                let file_extension = if target_os_is("macos") {
-                    ".dylib"
-                } else {
-                    ".so"
-                };
+                let file_extension = if target_os_is("macos") { ".dylib" } else { ".so" };
 
                 if let Some((stem, _rest)) = soname.rsplit_once(file_extension) {
-                    return stem.strip_prefix("lib").unwrap_or_else(|| {
-                        panic!("system library '{soname}' does not have a 'lib' prefix")
-                    }).to_string();
+                    return stem
+                        .strip_prefix("lib")
+                        .unwrap_or_else(|| panic!("system library '{soname}' does not have a 'lib' prefix"))
+                        .to_string();
                 }
             }
 

@@ -1,17 +1,17 @@
 /// Initializes the native target.
-/// 
+///
 /// # Notes
-/// 
+///
 /// This function is `static inline` in the LLVM source code. And thus
 /// it doesn't end up in the final binary. Therefore we provide our
 /// own wrapper.
-/// 
+///
 /// # Safety
-/// 
+///
 /// This function is unsafe because it calls LLVM functions that are not safe.
-/// 
+///
 /// # Panics
-/// 
+///
 /// This function panics if the native target couldn't be detected. This error
 /// should be detected at compile time though, this check here is just a fallback.
 #[inline(always)]
@@ -25,10 +25,6 @@ pub unsafe fn initialize_target() {
             llvm_sys::target::LLVMInitializeAArch64Target();
             llvm_sys::target::LLVMInitializeAArch64TargetInfo();
             llvm_sys::target::LLVMInitializeAArch64TargetMC();
-        } else if cfg!(target_arch = "loongarch64") {
-            llvm_sys::target::LLVMInitializeLoongArchTarget();
-            llvm_sys::target::LLVMInitializeLoongArchTargetInfo();
-            llvm_sys::target::LLVMInitializeLoongArchTargetMC();
         } else if cfg!(target_arch = "arm") {
             llvm_sys::target::LLVMInitializeARMTarget();
             llvm_sys::target::LLVMInitializeARMTargetInfo();
@@ -40,19 +36,19 @@ pub unsafe fn initialize_target() {
 }
 
 /// Initializes the native asm printer.
-/// 
+///
 /// # Notes
-/// 
+///
 /// This function is `static inline` in the LLVM source code. And thus
 /// it doesn't end up in the final binary. Therefore we provide our
 /// own wrapper.
-/// 
+///
 /// # Safety
-/// 
+///
 /// This function is unsafe because it calls LLVM functions that are not safe.
-/// 
+///
 /// # Panics
-/// 
+///
 /// This function panics if the native target couldn't be detected. This error
 /// should be detected at compile time though, this check here is just a fallback.
 #[inline(always)]
@@ -62,8 +58,6 @@ pub unsafe fn initialize_asm_printer() {
             llvm_sys::target::LLVMInitializeX86AsmPrinter();
         } else if cfg!(target_arch = "aarch64") {
             llvm_sys::target::LLVMInitializeAArch64AsmPrinter();
-        } else if cfg!(target_arch = "loongarch64") {
-            llvm_sys::target::LLVMInitializeLoongArchAsmPrinter();
         } else if cfg!(target_arch = "arm") {
             llvm_sys::target::LLVMInitializeARMAsmPrinter();
         } else {
@@ -73,19 +67,19 @@ pub unsafe fn initialize_asm_printer() {
 }
 
 /// Initializes the native asm parser.
-/// 
+///
 /// # Notes
-/// 
+///
 /// This function is `static inline` in the LLVM source code. And thus
 /// it doesn't end up in the final binary. Therefore we provide our
 /// own wrapper.
-/// 
+///
 /// # Safety
-/// 
+///
 /// This function is unsafe because it calls LLVM functions that are not safe.
-/// 
+///
 /// # Panics
-/// 
+///
 /// This function panics if the native target couldn't be detected. This error
 /// should be detected at compile time though, this check here is just a fallback.
 #[inline(always)]
@@ -95,8 +89,6 @@ pub unsafe fn initialize_asm_parser() {
             llvm_sys::target::LLVMInitializeX86AsmParser();
         } else if cfg!(target_arch = "aarch64") {
             llvm_sys::target::LLVMInitializeAArch64AsmParser();
-        } else if cfg!(target_arch = "loongarch64") {
-            llvm_sys::target::LLVMInitializeLoongArchAsmParser();
         } else if cfg!(target_arch = "arm") {
             llvm_sys::target::LLVMInitializeARMAsmParser();
         } else {
@@ -108,17 +100,17 @@ pub unsafe fn initialize_asm_parser() {
 /// Initializes the native disassembler.
 ///     
 /// # Notes
-/// 
+///
 /// This function is `static inline` in the LLVM source code. And thus
 /// it doesn't end up in the final binary. Therefore we provide our
 /// own wrapper.
-/// 
+///
 /// # Safety
-/// 
+///
 /// This function is unsafe because it calls LLVM functions that are not safe.
-/// 
+///
 /// # Panics
-/// 
+///
 /// This function panics if the native target couldn't be detected. This error
 /// should be detected at compile time though, this check here is just a fallback.
 #[inline(always)]
@@ -128,8 +120,6 @@ pub unsafe fn initialize_disassembler() {
             llvm_sys::target::LLVMInitializeX86Disassembler();
         } else if cfg!(target_arch = "aarch64") {
             llvm_sys::target::LLVMInitializeAArch64Disassembler();
-        } else if cfg!(target_arch = "loongarch64") {
-            llvm_sys::target::LLVMInitializeLoongArchDisassembler();
         } else if cfg!(target_arch = "arm") {
             llvm_sys::target::LLVMInitializeARMDisassembler();
         } else {
