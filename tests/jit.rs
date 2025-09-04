@@ -1,3 +1,4 @@
+#![cfg(any(feature = "llvm-19", feature = "llvm-20", feature = "llvm-21"))]
 pub use total_llvm_sys::llvm_sys as llvm;
 
 use std::ffi::CStr;

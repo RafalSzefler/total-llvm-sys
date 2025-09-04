@@ -1,33 +1,38 @@
 /// Represents supported LLVM versions.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[repr(u32)]
 #[must_use]
 pub enum LLVMVersion {
-    LLVM19,
-    LLVM20,
+    LLVM19 = 19,
+    LLVM20 = 20,
+    LLVM21 = 21,
 }
 
 /// Represents supported cpu architectures.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[repr(u8)]
 #[must_use]
 pub enum Arch {
-    X86,
-    X86_64,
-    Arm,
-    Arm64,
+    X86 = 0,
+    X86_64 = 1,
+    Arm = 2,
+    Arm64 = 3,
 }
 
 /// Represents supported operating systems.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[repr(u8)]
 #[must_use]
 pub enum OS {
-    Windows,
-    Linux,
-    MacOS,
+    Windows = 0,
+    Linux = 1,
+    MacOS = 2,
 }
 
 /// General struct that keeps info about LLVM version,
 /// current architecture and os.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[repr(C)]
 #[must_use]
 pub struct Target {
     llvm_version: LLVMVersion,
@@ -71,6 +76,8 @@ const fn get_current_llvm_version() -> LLVMVersion {
         LLVMVersion::LLVM19
     } else if cfg!(feature = "llvm-20") {
         LLVMVersion::LLVM20
+    } else if cfg!(feature = "llvm-21") {
+        LLVMVersion::LLVM21
     } else {
         panic!("Invalid llvm version")
     }

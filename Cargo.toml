@@ -5,14 +5,16 @@ edition = "2024"
 build = "build/main.rs"
 
 [dependencies]
-llvm-sys-19 = { package = "llvm-sys", version = "191.0.0", default-features = false, features = ["no-llvm-linking", "disable-alltargets-init", "strict-versioning"], optional = true }
-llvm-sys-20 = { package = "llvm-sys", version = "201.0.1", default-features = false, features = ["no-llvm-linking", "disable-alltargets-init", "strict-versioning"], optional = true }
+llvm-sys-19 = { package = "llvm-sys", version = "191.0", default-features = false, features = ["no-llvm-linking", "disable-alltargets-init", "strict-versioning"], optional = true }
+llvm-sys-20 = { package = "llvm-sys", version = "201.0", default-features = false, features = ["no-llvm-linking", "disable-alltargets-init", "strict-versioning"], optional = true }
+llvm-sys-21 = { package = "llvm-sys", version = "211.0", default-features = false, features = ["no-llvm-linking", "disable-alltargets-init", "strict-versioning"], optional = true }
 
 [build-dependencies]
 reqwest = { version = "0.12", features = ["blocking"] }
 zip = "4.3"
 
 [features]
-default = ["llvm-20"]
+default = []
 llvm-19 = ["llvm-sys-19"]
 llvm-20 = ["llvm-sys-20"]
+llvm-21 = ["llvm-sys-21"]

@@ -7,6 +7,7 @@ use std::{
     sync::LazyLock,
 };
 
+
 mod arch;
 mod features;
 mod linking;
@@ -22,10 +23,19 @@ fn download_archive(url: &str, build_dir: &PathBuf, filename: &str) {
     if !build_dir.exists() {
         std::fs::create_dir_all(build_dir).unwrap();
     }
-
-    let mut file = std::fs::File::create(build_dir.join(filename)).unwrap();
+    let archive_file = build_dir.join(filename);
+    let mut file = std::fs::File::create(&archive_file).unwrap();
     let resp = reqwest::blocking::get(url).unwrap();
-    let mut resp = resp.error_for_status().unwrap();
+    let mut resp = match resp.error_for_status() {
+        Ok(ok) => ok,
+        Err(err) => {
+            drop(file);
+            let _ = std::fs::remove_file(archive_file);
+            let status = err.status().unwrap_or_default();
+            let url = err.url().unwrap();
+            panic!("Could not download llvm build. Received [{status}] from [{url}].");
+        },
+    };
     std::io::copy(&mut resp, &mut file).unwrap();
     file.sync_all().unwrap();
     file.flush().unwrap();

@@ -4,6 +4,7 @@ use std::{collections::HashSet, sync::LazyLock};
 pub enum LLVMFeatures {
     LLVM19,
     LLVM20,
+    LLVM21,
 }
 
 impl LLVMFeatures {
@@ -11,6 +12,7 @@ impl LLVMFeatures {
         match self {
             LLVMFeatures::LLVM19 => "llvm-19",
             LLVMFeatures::LLVM20 => "llvm-20",
+            LLVMFeatures::LLVM21 => "llvm-21",
         }
     }
 }
@@ -24,6 +26,10 @@ static CURRENT_LLVM_FEATURE: LazyLock<LLVMFeatures> = LazyLock::new(|| {
 
     if cfg!(feature = "llvm-20") {
         features.insert(LLVMFeatures::LLVM20);
+    }
+
+    if cfg!(feature = "llvm-21") {
+        features.insert(LLVMFeatures::LLVM21);
     }
 
     assert!(!features.is_empty(), "No [llvm-*] features specified.");

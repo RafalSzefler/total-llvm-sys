@@ -23,4 +23,12 @@ macro_rules! reexport_llvm {
     };
 }
 
+#[cfg(feature = "llvm-21")]
+macro_rules! reexport_llvm {
+    () => {
+        pub extern crate llvm_sys_21;
+        pub extern crate llvm_sys_21 as llvm_sys;
+    };
+}
+
 pub(crate) use reexport_llvm;
