@@ -11,8 +11,22 @@ mod features;
 mod linking;
 mod os;
 
+fn get_tmp_build_dir() -> PathBuf {
+    std::env::temp_dir()
+}
+
 fn get_build_dir() -> PathBuf {
-    PathBuf::from(std::env::var("OUT_DIR").unwrap()).join("total-llvm-sys")
+    let Ok(build_dir) = std::env::var("TOTAL_LLVM_SYS_BUILD_DIR") else {
+        return get_tmp_build_dir();
+    };
+    let build_dir = build_dir.trim();
+    if build_dir.is_empty() {
+        return get_tmp_build_dir();
+    }
+    let build_dir = PathBuf::from(build_dir);
+    let build_dir_str = build_dir.to_string_lossy();
+    assert!(!build_dir.exists() || build_dir.is_dir(), "TOTAL_LLVM_SYS_BUILD_DIR is not a directory: {build_dir_str}");
+    build_dir
 }
 
 fn download_archive(url: &str, build_dir: &PathBuf, filename: &str) {
@@ -92,25 +106,24 @@ fn main() {
     let version = features::get_current_llvm_feature();
     let os = os::get_current_os();
     let arch = arch::get_current_arch();
-    let archive_url_template = std::env::var("ARCHIVE_URL_TEMPLATE").unwrap();
-    println!("cargo:rerun-if-env-changed=ARCHIVE_URL_TEMPLATE");
+    let archive_url_template = std::env::var("TOTAL_LLVM_SYS_ARCHIVE_URL_TEMPLATE").unwrap();
+    println!("cargo:rerun-if-env-changed=TOTAL_LLVM_SYS_ARCHIVE_URL_TEMPLATE");
     let archive_url = archive_url_template
         .replace("{llvmVersion}", version.as_str())
         .replace("{os}", os.as_str())
         .replace("{arch}", arch.as_str());
-    let build_dir = get_build_dir();
-    let llvm_dir = build_dir.join(format!("{}-{}-{}", version.as_str(), os.as_str(), arch.as_str()));
-    if !llvm_dir.exists() {
-        let archive_filename = format!("{}-{}-{}.zip", version.as_str(), os.as_str(), arch.as_str());
-        download_archive(&archive_url, &build_dir, &archive_filename);
-        unzip_archive(&build_dir, &archive_filename);
+    let build_dir = get_build_dir().join("total-llvm-sys");
+    if !build_dir.exists() {
+        std::fs::create_dir_all(&build_dir).expect("Failed to create build directory");
     }
-
+    let llvm_dir = build_dir.join(format!("{}-{}-{}", version.as_str(), os.as_str(), arch.as_str()));
+    let llvm_dir_str = llvm_dir.to_string_lossy();
+    println!("cargo:rerun-if-changed={llvm_dir_str}");
+    if !llvm_dir.exists() {
+        download_archive(&archive_url, &build_dir, &format!("{}-{}-{}.zip", version.as_str(), os.as_str(), arch.as_str()));
+        unzip_archive(&build_dir, &format!("{}-{}-{}.zip", version.as_str(), os.as_str(), arch.as_str()));
+    }
     set_permissions_on_bin(&llvm_dir);
-
-    assert!(llvm_dir.exists(), "LLVM directory not found: {}", llvm_dir.display());
-
-    println!("cargo:rerun-if-changed={}", llvm_dir.display());
-
+    println!("cargo::warning=Linking to LLVM stored in {llvm_dir_str}...");
     linking::link_llvm(&llvm_dir);
 }

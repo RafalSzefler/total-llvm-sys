@@ -1,2 +1,9 @@
 [env]
-ARCHIVE_URL_TEMPLATE = "https://github.com/RafalSzefler/llvm-builds/releases/download/{llvmVersion}/{llvmVersion}-{os}-{arch}.zip"
+
+# The template for the archive URL.
+TOTAL_LLVM_SYS_ARCHIVE_URL_TEMPLATE = "https://github.com/RafalSzefler/llvm-builds/releases/download/{llvmVersion}/{llvmVersion}-{os}-{arch}.zip"
+
+# The directory where the LLVM build will be downloaded and extracted.
+# If not set, the build will be downloaded and extracted to a temporary directory,
+# subject to reset between system restarts.
+TOTAL_LLVM_SYS_BUILD_DIR = ""

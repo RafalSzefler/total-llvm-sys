@@ -9,6 +9,19 @@ pub enum LLVMVersion {
     LLVM22 = 22,
 }
 
+impl LLVMVersion {
+    /// Returns the string representation of the LLVM version.
+    #[inline]
+    pub const fn as_str(self) -> &'static str {
+        match self {
+            LLVMVersion::LLVM19 => "LLVM-19",
+            LLVMVersion::LLVM20 => "LLVM-20",
+            LLVMVersion::LLVM21 => "LLVM-21",
+            LLVMVersion::LLVM22 => "LLVM-22",
+        }
+    }
+}
+
 /// Represents supported cpu architectures.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 #[repr(u8)]
@@ -20,6 +33,19 @@ pub enum Arch {
     Arm64 = 3,
 }
 
+impl Arch {
+    /// Returns the string representation of the architecture.
+    #[inline]
+    pub const fn as_str(self) -> &'static str {
+        match self {
+            Arch::X86 => "X86",
+            Arch::X86_64 => "X86_64",
+            Arch::Arm => "Arm",
+            Arch::Arm64 => "Arm64",
+        }
+    }
+}
+
 /// Represents supported operating systems.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 #[repr(u8)]
@@ -28,6 +54,18 @@ pub enum OS {
     Windows = 0,
     Linux = 1,
     MacOS = 2,
+}
+
+impl OS {
+    /// Returns the string representation of the operating system.
+    #[inline]
+    pub const fn as_str(self) -> &'static str {
+        match self {
+            OS::Windows => "Windows",
+            OS::Linux => "Linux",
+            OS::MacOS => "MacOS",
+        }
+    }
 }
 
 /// General struct that keeps info about LLVM version,

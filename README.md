@@ -13,5 +13,5 @@ see the `Cargo.toml` file. This crate does not have default features set.
 Under the hood, this crate downloads LLVM binaries from a remote source, by default
 releases of [llvm-builds](https://github.com/RafalSzefler/llvm-builds) repository.
 It is possible that not all releases are included there. In that case you have to
-build LLVM manually, zip it, upload it somewhere and set the `ARCHIVE_URL_TEMPLATE`
+build LLVM manually, zip it, upload it somewhere and set the `TOTAL_LLVM_SYS_ARCHIVE_URL_TEMPLATE`
 build env variable. Follow the structure as in `.cargo/config.toml` example.
