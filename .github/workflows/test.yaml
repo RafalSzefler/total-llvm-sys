@@ -28,7 +28,7 @@ jobs:
   test-total-llvm-sys:
     runs-on: ${{ github.event.inputs.runner }}
 
-    timeout-minutes: 360
+    timeout-minutes: 60
 
     steps:
       - name: Display build info
@@ -51,9 +51,9 @@ jobs:
 
       - name: Build total-llvm-sys release
         run: |
-          cargo build --features="llvm-${{ github.event.inputs.llvm-version }}"
+          cargo build -r --features="llvm-${{ github.event.inputs.llvm-version }}"
       
       - name: Test total-llvm-sys release
         run: |
-          cargo test --features="llvm-${{ github.event.inputs.llvm-version }}"
+          cargo test -r --features="llvm-${{ github.event.inputs.llvm-version }}"
 
