@@ -11,8 +11,7 @@ use config::Config;
 
 
 pub fn main() -> Result<(), anyhow::Error> {
-    #[cfg(windows)]
-    let _ = enable_ansi_support::enable_ansi_support();
+    init()?;
 
     let cli_args = cli_args::CliArgs::parse_command_line_args();
     let config = Config::new(cli_args);
@@ -24,4 +23,19 @@ pub fn main() -> Result<(), anyhow::Error> {
         .expect("Failed building the tokio runtime");
 
     runtime.block_on(downloader::download_and_install_llvm(&config))
+}
+
+fn init() -> Result<(), anyhow::Error> {
+    #[cfg(windows)]
+    let _ = enable_ansi_support::enable_ansi_support();
+
+    let term_var = std::env::var("TERM").unwrap_or_default();
+    let term = term_var.trim();
+    if term.is_empty() {
+        println!("[WARNING] TERM environment variable is not set. Progress bars will not be displayed.");
+    } else if term == "dumb" {
+        println!("[WARNING] TERM environment variable is set to 'dumb'. Progress bars will not be displayed.");
+    }
+
+    Ok(())
 }

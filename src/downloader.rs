@@ -1,4 +1,4 @@
-use std::{collections::HashSet, path::PathBuf, sync::{Arc, Mutex}};
+use std::{collections::HashSet, io::Write, path::PathBuf, sync::{Arc, Mutex}};
 
 use indicatif::{MultiProgress, ProgressBar, ProgressDrawTarget, ProgressStyle};
 use futures_util::StreamExt;
@@ -7,19 +7,18 @@ use crate::config::Config;
 
 pub async fn download_and_install_llvm(config: &Config) -> Result<(), anyhow::Error> {
     let mp = MultiProgress::new();
-    mp.println("=== Download & Install LLVM ===").unwrap();
+    mp.println("=== Download & Install LLVM ===")?;
     let archive_path = download_llvm(config, &mp).await?;
     let dst_folder = install_llvm(config, &archive_path, &mp).await?;
     set_permissions_on_bin(&dst_folder);
     mp.println(format!("LLVM [{}] successfully installed to [{}]", config.llvm_version, dst_folder.display())).unwrap();
-    std::fs::remove_file(archive_path).unwrap();
-    mp.println("=== All tasks complete ===").unwrap();
-    drop(mp);
-    println!("");
-    println!("In order to use the installed LLVM, either add the following path to your $PATH environment variable, or set the LLVM_SYS_<version>_PREFIX environment variable:");
-    println!("");
-    println!("{}", dst_folder.display());
-    println!("");
+    std::fs::remove_file(archive_path)?;
+    mp.println("=== All tasks complete ===")?;
+    mp.println("")?;
+    mp.println("In order to use the installed LLVM, either add the following path to your $PATH environment variable, or (if you use llvm_sys) set the $LLVM_SYS_<version>_PREFIX environment variable:").unwrap();
+    mp.println("")?;
+    mp.println(format!("{}", dst_folder.display()))?;
+    mp.println("")?;
     Ok(())
 }
 
@@ -76,6 +75,7 @@ async fn download_llvm(config: &Config, mp: &MultiProgress) -> Result<PathBuf, a
     Ok(archive_path)
 }
 
+const NUMBER_OF_WORKERS: usize = 11;
 
 async fn install_llvm(config: &Config, archive_path: &PathBuf, mp: &MultiProgress) -> Result<PathBuf, anyhow::Error> {
     let base = format!("llvm-{}-{}-{}", config.llvm_version, config.os.as_str(), config.arch.as_str());
@@ -103,20 +103,24 @@ async fn install_llvm(config: &Config, archive_path: &PathBuf, mp: &MultiProgres
 
     let pb = Arc::new(Mutex::new(mp.add(make_zip_bar(u64::try_from(total_size)?, "Install"))));
 
-    let mut handles = Vec::new();
-    let chunk_size = 100;
-    let mut idx = chunk_size;
-    while idx < total_size {
+    let mut channels = Vec::with_capacity(NUMBER_OF_WORKERS);
+    for _ in 0..NUMBER_OF_WORKERS {
+        channels.push(Vec::with_capacity((total_size / NUMBER_OF_WORKERS) + 1));
+    }
+    for i in 0..total_size {
+        channels[i % NUMBER_OF_WORKERS].push(i);
+    }
+
+    let mut handlers = Vec::new();
+    for channel in channels {
         let pb_handle = pb.clone();
         let archive_path_handle = archive_path.clone();
         let dst_folder_handle = dst_folder.clone();
-        handles.push(tokio::task::spawn_blocking(move || {
-            let start = idx - chunk_size;
+        handlers.push(tokio::task::spawn_blocking(move || {
             let file = std::fs::File::open(archive_path_handle).unwrap();
             let mut zip = zip::ZipArchive::new(file).unwrap();
-            let end = std::cmp::min(start + chunk_size, total_size);
-            for i in start..end {
-                let mut src_file = zip.by_index(i).unwrap();
+            for idx in channel {
+                let mut src_file = zip.by_index(idx).unwrap();
                 let mut src_file_name = src_file.name();
                 if single_root {
                     let pos = src_file_name.find('/').unwrap();
@@ -138,15 +142,15 @@ async fn install_llvm(config: &Config, archive_path: &PathBuf, mp: &MultiProgres
                     let mut outfile = std::fs::File::create(&outpath)
                         .expect(&format!("Couldn't create [{}] file.", outpath.display()));
                     std::io::copy(&mut src_file, &mut outfile).unwrap();
+                    outfile.flush().unwrap();
                 }
                 pb_handle.lock().unwrap().inc(1);
             }
         }));
-        idx += chunk_size;
     }
 
-    for handle in handles {
-        handle.await?;
+    for handler in handlers {
+        handler.await?;
     }
 
     pb.lock().unwrap().finish_and_clear();
